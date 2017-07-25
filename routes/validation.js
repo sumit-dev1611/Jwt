@@ -37,14 +37,6 @@ module.exports = {
         }
     },
 
-    validateAccess: (body, callback) => {        
-        if ((new Date(body.expiry).getTime()) <= (new Date().getTime())) {
-            callback("Access time expired..  Login Again!!");
-        }else{
-            callback("");
-        }
-    },
-
     validateAddress: (body, callback) => {
         if (body.user_id == null || body.user_id == "") {
             callback("enter user id", null);

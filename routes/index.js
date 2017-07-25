@@ -21,7 +21,7 @@ router.post('/user/register/', function(req, res, next) {
                 if (err) {
                     next(err);
                 } else {
-                    res.json(data)
+                    res.json({ user_detail: data })
                 }
             })
         }
@@ -41,7 +41,7 @@ router.post('/user/login/', function(req, res, next) {
                     var token = jwt.sign({ user_id: users_data._id }, "abc", {
                         expiresIn: 3600000
                     });
-                    res.json(token)
+                    res.json({ token: token })
                 } else {
                     next('Not a user !!!     Get registered');
                 }
@@ -59,7 +59,7 @@ router.get('/user/get', function(req, res, next) {
                 if (err) {
                     next(err);
                 } else if (complete_data) {
-                    res.json(complete_data)
+                    res.json({ user_detai: complete_data })
                 } else {
                     next("can't fetch data");
                 }
@@ -79,21 +79,25 @@ router.all('/user/delete', function(req, res, next) {
                 if (err) {
                     next(err);
                 } else {
-                    res.json('data deleted');
+                    res.json({ success: "success" });
                 }
             });
         }
     });
 });
 
-
-
 router.get('/user/list', function(req, res, next) {
-    req.users_collection.find({}).skip((req.query.page) * parseInt(req.query.limit)).limit(parseInt(req.query.limit)).exec(function(err, data) {
+    accessVerification.verifyAccess(req, function(err, access_token_data) {
         if (err) {
             next(err);
         } else {
-            res.json(data);
+            req.users_collection.find({}).skip((req.query.page) * parseInt(req.query.limit)).limit(parseInt(req.query.limit)).exec(function(err, data) {
+                if (err) {
+                    next(err);
+                } else {
+                    res.json({ list: data });
+                }
+            });
         }
     });
 });
@@ -106,7 +110,7 @@ router.post('/user/address', function(req, res, next) {
             validation.validateAddress(req.body, function(err, data) {
                 if (err) {
                     next(err);
-                } else  {
+                } else {
                     var userAddress = new req.address_collection({
                         user_id: data.user_id,
                         address: data.address,
@@ -116,12 +120,12 @@ router.post('/user/address', function(req, res, next) {
                         if (err) {
                             next(err);
                         } else {
-                            res.json(data)
+                            res.json({ address: data })
                         }
                     });
-                } 
+                }
             });
-        } 
+        }
     });
 });
 
