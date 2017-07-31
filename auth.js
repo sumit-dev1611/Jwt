@@ -6,7 +6,7 @@ var jwt = require('jsonwebtoken');
 passport.use(new Strategy(function(token, cb) {
     jwt.verify(token, "abc", function(err, access_token_data) {
         if (err) {
-            return callback(err, null);
+            return cb(err, null);
         } else {
             db.user.find({ _id: access_token_data.user_id }).exec(function(err, user) {
                 if (err) {
