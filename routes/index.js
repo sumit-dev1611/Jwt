@@ -1,22 +1,15 @@
 var express = require('express');
-var app = express();
 var router = express();
 var md5 = require('md5');
-var _ = require("lodash");
 var jwt = require('jsonwebtoken');
-var bodyParser = require('body-parser');
 var validation = require('./validation');
 var passport = require('passport');
-var passportJWT = require("passport-jwt");
 var model = require('../mongodb/db');
-
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json())
 
 router.post('/user/register/', function(req, res, next) {
     validation.validateRegistration(req.body, function(err, data) {
         if (err) {
-            res.status(400).json({ error: err });
+            next(err)
         } else {
             var detail = new model.user({
                 username: data.username,
@@ -27,7 +20,7 @@ router.post('/user/register/', function(req, res, next) {
             })
             detail.save(function(err, data) {
                 if (err) {
-                    res.status(400).json({ error: err });
+                    next(err)
                 } else {
                     res.json({ user_detail: data })
                 }
@@ -39,11 +32,11 @@ router.post('/user/register/', function(req, res, next) {
 router.post('/user/login/', function(req, res, next) {
     validation.validateLogin(req.body, function(err, data) {
         if (err) {
-            res.status(400).json({ error: err });
+            next(err)
         } else {
             model.user.findOne({ username: data.username, password: data.password }, function(err, users_data) {
                 if (err) {
-                    res.status(400).json({ error: err });
+                    next(err)
                 } else if (users_data) {
                     var payload = { user_id: users_data._id };
                     var token = jwt.sign(payload, "abc", {
@@ -51,7 +44,7 @@ router.post('/user/login/', function(req, res, next) {
                     });
                     res.json({ message: "ok", "Access token": token });
                 } else {
-                    res.status(400).json({ error: 'Not a user !!!     Get registered' });
+                    next('Not a user !!!     Get registered');
                 }
             });
         }
@@ -73,7 +66,7 @@ router.get('/user/get', passport.authenticate('bearer', { session: false }), fun
 router.all('/user/delete', passport.authenticate('bearer', { session: false }), function(req, res, next) {
     model.user.remove({ "_id": req.user[0]._id }, function(err, result) {
         if (err) {
-            res.status(400).json({ error: err });
+            next(err)
         } else {
             res.json({ success: "success" });
         }
@@ -83,7 +76,7 @@ router.all('/user/delete', passport.authenticate('bearer', { session: false }), 
 router.get('/user/list', passport.authenticate('bearer', { session: false }), function(req, res, next) {
     model.user.find({}).skip((req.query.page) * parseInt(req.query.limit)).limit(parseInt(req.query.limit)).exec(function(err, data) {
         if (err) {
-            res.status(400).json({ error: err });
+            next(err)
         } else {
             res.json({ list: data });
         }
@@ -93,7 +86,7 @@ router.get('/user/list', passport.authenticate('bearer', { session: false }), fu
 router.post('/user/address', passport.authenticate('bearer', { session: false }), function(req, res, next) {
     validation.validateAddress(req.body, function(err, data) {
         if (err) {
-            res.status(400).json({ error: err });
+            next(err)
         } else {
             var userAddress = new model.address({
                 user_id: data.user_id,
@@ -102,7 +95,7 @@ router.post('/user/address', passport.authenticate('bearer', { session: false })
             });
             userAddress.save(function(err, data) {
                 if (err) {
-                    res.status(400).json({ error: err });
+                    next(err)
                 } else {
                     res.json({ address: data })
                 }
