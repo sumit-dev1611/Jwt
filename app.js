@@ -3,11 +3,12 @@ var app = express();
 var bodyParser = require('body-parser');
 var routes = require('./routes/index.js');
 var db = require('./mongodb/db.js');
+var auth =require('./auth.js')
 
-app.use(db())
 app.use(bodyParser.urlencoded({
     extended: true
 }));
+
 app.use('/', routes);
 app.use(errorHandler);
 
